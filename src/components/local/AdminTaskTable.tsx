@@ -2,7 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserTasks, deleteTask } from "@/lib/api";
-import { Task } from "@/types";
 import {
   Table,
   TableBody,
@@ -12,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Task } from "@/types";
 // import { mockTasks } from "@/lib/data";
 
 interface AdminTaskTableProps {
@@ -51,7 +51,7 @@ export default function AdminTaskTable({ userId }: AdminTaskTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {tasks.map((task) => (
+        {tasks.map((task: Task)=> (
           <TableRow key={task._id}>
             <TableCell>{task.title}</TableCell>
             <TableCell>{task.description || "-"}</TableCell>
