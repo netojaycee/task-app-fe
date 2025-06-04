@@ -76,7 +76,7 @@ const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(
           <div className='flex items-stretch'>
             {/* Drag handle - this is the dedicated area for drag and drop */}
             <div
-              className='flex items-center px-2 bg-gray-50 hover:bg-gray-100 cursor-grab active:cursor-grabbing transition-colors'
+              className='flex items-center sm:px-2 bg-gray-50 hover:bg-gray-100 cursor-grab active:cursor-grabbing transition-colors'
               data-drag-handle
               {...dragHandleProps?.attributes}
               {...dragHandleProps?.listeners}
@@ -86,7 +86,7 @@ const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(
 
             {/* Main content */}
             <CardContent className='flex-1'>
-              <div className='flex justify-between items-start flex-col sm:flex-row sm:mb-4'>
+              <div className='flex justify-between items-start flex-col-reverse sm:flex-row sm:mb-4'>
                 <h3 className='font-medium text-lg mb-2 text-gray-800'>
                   {task.title}
                 </h3>
