@@ -15,23 +15,31 @@ import {
   TouchSensor,
   KeyboardSensor,
 } from "@dnd-kit/core";
-import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { SortableTask } from "./SortableTask";
 import SearchFilter from "./SearchFilter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useDebounce } from "use-debounce";
 
 export default function TaskList() {
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState<string>("");
   const [filters, setFilters] = useState<TaskFilter>({
     page: 1,
     limit: 10,
   });
+  const [debouncedValue] = useDebounce(search, 500);
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["tasks", filters],
+    queryKey: ["tasks", { ...filters, search: debouncedValue }],
     queryFn: async () => {
-      const response = await getTasks(filters);
+      const response = await getTasks({ ...filters, search: debouncedValue });
       return response.data;
     },
     placeholderData: (previousData) => previousData,
@@ -42,10 +50,10 @@ export default function TaskList() {
 
   //   console.log(data)
 
-  // Debounced search handler
-  const debouncedSearch = useCallback((value: string) => {
-    setFilters((prev) => ({ ...prev, search: value || undefined, page: 1 }));
-  }, []);
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setFilters((prev) => ({ ...prev, page: 1 })); // Reset page when searching
+  };
 
   // Filter handler
   const handleFilterChange = useCallback(
@@ -59,8 +67,6 @@ export default function TaskList() {
     },
     []
   );
-
- 
 
   // Add a new handler for drag movement
   const handleDragMove = (event: any) => {
@@ -85,7 +91,7 @@ export default function TaskList() {
     if (active.id !== over?.id) {
       const oldIndex = tasks.findIndex((task: Task) => task._id === active.id);
       const newIndex = tasks.findIndex((task: Task) => task._id === over?.id);
-     
+
       try {
         // Persist the change to the backend
         await updateTaskPosition(active.id, { position: newIndex });
@@ -105,30 +111,29 @@ export default function TaskList() {
       }
     }
   };
-//   const sensors = useSensors(useSensor(PointerSensor));
+  //   const sensors = useSensors(useSensor(PointerSensor));
 
-
-const sensors = useSensors(
-  useSensor(PointerSensor, {
-    // Increased activation area for better touch response
-    activationConstraint: {
-      distance: 8,
-      tolerance: 8,
-      delay: 100, // Small delay to differentiate between tap and drag
-    },
-  }),
-  useSensor(TouchSensor, {
-    // Customized settings for touch devices
-    activationConstraint: {
-      delay: 250, // Increased delay for touch to differentiate between scroll and drag
-      tolerance: 5,
-    },
-  }),
-  useSensor(KeyboardSensor, {
-    // Added keyboard support for accessibility
-    coordinateGetter: sortableKeyboardCoordinates,
-  })
-);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      // Increased activation area for better touch response
+      activationConstraint: {
+        distance: 8,
+        tolerance: 8,
+        delay: 100, // Small delay to differentiate between tap and drag
+      },
+    }),
+    useSensor(TouchSensor, {
+      // Customized settings for touch devices
+      activationConstraint: {
+        delay: 250, // Increased delay for touch to differentiate between scroll and drag
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      // Added keyboard support for accessibility
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   if (isLoading) {
     return (
@@ -142,7 +147,7 @@ const sensors = useSensors(
     return (
       <div className='max-w-6xl mx-auto'>
         <SearchFilter
-          onSearchChange={debouncedSearch}
+          onSearchChange={handleSearch}
           onFilterChange={handleFilterChange}
           defaultValues={filters}
           isLoading={isFetching}
@@ -162,7 +167,7 @@ const sensors = useSensors(
   return (
     <div className='max-w-6xl mx-auto'>
       <SearchFilter
-        onSearchChange={debouncedSearch}
+        onSearchChange={handleSearch}
         onFilterChange={handleFilterChange}
         defaultValues={filters}
         isLoading={isFetching}
@@ -175,7 +180,6 @@ const sensors = useSensors(
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
         modifiers={[restrictToVerticalAxis]}
-       
       >
         <div className='space-y-4 mb-6'>
           <SortableContext
