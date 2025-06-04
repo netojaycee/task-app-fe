@@ -20,13 +20,15 @@ interface AdminTaskTableProps {
 
 export default function AdminTaskTable({ userId }: AdminTaskTableProps) {
   const queryClient = useQueryClient();
-  const { data: tasks = [] } = useQuery<Task[]>({
+  const { data } = useQuery({
     queryKey: ["userTasks", userId],
     queryFn: async () => {
       const response = await getUserTasks(userId);
       return response.data;
     },
   });
+
+  const tasks = (data && data.data) || [];
 
   // const tasks = mockTasks;
   
