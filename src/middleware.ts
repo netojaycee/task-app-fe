@@ -20,28 +20,28 @@ export async function middleware(request: NextRequest) {
         }
 
         // Verify token and role for admin routes
-        // if (pathname.startsWith('/admin')) {
-        //     try {
-        //         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
-        //             headers: {
-        //                 Cookie: `fgkt=${token}`,
-        //             },
-        //             credentials: 'include',
-        //         });
+        if (pathname.startsWith('/admin')) {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
+                    headers: {
+                        Cookie: `fgkt=${token}`,
+                    },
+                    credentials: 'include',
+                });
 
-        //         if (!response.ok) {
-        //             throw new Error('Failed to verify token');
-        //         }
+                if (!response.ok) {
+                    throw new Error('Failed to verify token');
+                }
 
-        //         const user = await response.json();
-        //         if (!user || user.role !== 'admin') {
-        //             return NextResponse.redirect(new URL('/dashboard', request.url));
-        //         }
-        //     } catch (error) {
-        //         console.error('Token verification failed:', error);
-        //         return NextResponse.redirect(new URL('/login', request.url));
-        //     }
-        // }
+                const user = await response.json();
+                if (!user || user.role !== 'admin') {
+                    return NextResponse.redirect(new URL('/dashboard', request.url));
+                }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                return NextResponse.redirect(new URL('/login', request.url));
+            }
+        }
     }
 
     return NextResponse.next();
