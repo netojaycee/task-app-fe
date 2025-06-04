@@ -16,7 +16,7 @@ A feature-rich task management application with user authentication, role-based 
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14 with App Router
+- **Frontend**: Next.js 15 with App Router
 - **UI Components**: Shadcn/UI
 - **Styling**: Tailwind CSS v4
 - **State Management**: React Query & Context API
@@ -27,7 +27,7 @@ A feature-rich task management application with user authentication, role-based 
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn
+- Node.js 19 and npm
 - Backend API server running (separate repository)
 
 ### Installation Steps
@@ -35,8 +35,8 @@ A feature-rich task management application with user authentication, role-based 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/task-management.git
-   cd task-management/fe
+   git clone https://github.com/netojaycee/task-app-fe.git
+   cd task-app-fe
    ```
 
 2. Install dependencies:
@@ -48,10 +48,9 @@ A feature-rich task management application with user authentication, role-based 
    ```
 
 3. Configure environment variables:
-   Create a `.env.local` file in the root directory with:
-
-   ```
-   NEXT_PUBLIC_API_URL=http://localhost:5000/api
+   
+   ```bash
+   cp .env.example .env
    ```
 
 4. Start the development server:
@@ -62,7 +61,7 @@ A feature-rich task management application with user authentication, role-based 
    yarn dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3001](http://localhost:3001) in your browser.
 
 ## Project Structure
 

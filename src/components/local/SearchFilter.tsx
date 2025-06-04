@@ -11,24 +11,39 @@ import {
 
 interface SearchFilterProps {
   onSearchChange: (value: string) => void;
-  onFilterChange: (filter: { status: string; priority: string }) => void;
+  onFilterChange: (filter: { status?: string; priority?: string }) => void;
+  defaultValues?: {
+    search?: string;
+    status?: string;
+    priority?: string;
+  };
+  isLoading?: boolean;
 }
 
 export default function SearchFilter({
   onSearchChange,
   onFilterChange,
+  defaultValues = {},
+  isLoading = false,
 }: SearchFilterProps) {
   return (
-    <div className='mb-6 flex space-x-4'>
+    <div className='mb-6 flex flex-wrap gap-4'>
       <Input
         placeholder='Search tasks...'
         onChange={(e) => onSearchChange(e.target.value)}
         className='max-w-xs'
+        defaultValue={defaultValues.search}
+        disabled={isLoading}
       />
       <Select
         onValueChange={(value) =>
-          onFilterChange({ status: value, priority: "" })
+          onFilterChange({
+            status: value === "all" ? undefined : value,
+            priority: defaultValues.priority,
+          })
         }
+        defaultValue={defaultValues.status}
+        disabled={isLoading}
       >
         <SelectTrigger className='w-[180px]'>
           <SelectValue placeholder='Filter by Status' />
@@ -42,9 +57,13 @@ export default function SearchFilter({
       </Select>
       <Select
         onValueChange={(value) =>
-          onFilterChange({ status: "", priority: value })
+          onFilterChange({
+            status: defaultValues.status,
+            priority: value === "all" ? undefined : value,
+          })
         }
-        
+        defaultValue={defaultValues.priority}
+        disabled={isLoading}
       >
         <SelectTrigger className='w-[180px]'>
           <SelectValue placeholder='Filter by Priority' />

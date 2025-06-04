@@ -13,24 +13,44 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getTasks } from "@/lib/api";
-import { Task } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import { Task } from "@/types";
 
 export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
+  
 
-  const { data: tasksData } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: async () => {
-      const response = await getTasks();
-      return response.data;
-    },
-  });
+//   const { data: tasksData } = useQuery({
+//     queryKey: ["tasks"],
+//     queryFn: async () => {
+//       const response = await getTasks();
+//       return response.data;
+//     },
+//   });
 
-  const tasks: Task[] = tasksData || [];
+ const { data } = useQuery({
+   queryKey: [
+     "tasks",
+     {
+       page: 1,
+       limit: 10,
+     },
+   ],
+   queryFn: async () => {
+     const response = await getTasks({
+       page: 1,
+       limit: 10,
+     });
+     return response.data;
+   },
+   placeholderData: (previousData) => previousData,
+ });
+
+  const tasks = data && data?.data || [];
+//   const tasks: Task[] = tasksData || [];
   // const { data } = useQuery({
   //     queryKey: ["tasks"],
   //     queryFn: getTasks,
@@ -40,13 +60,13 @@ export default function DashboardPage() {
   // Task statistics
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(
-    (task) => task.status === "completed"
+    (task: Task) => task.status === "completed"
   ).length;
   const inProgressTasks = tasks.filter(
-    (task) => task.status === "in-progress"
+    (task: Task) => task.status === "in-progress"
   ).length;
   const highPriorityTasks = tasks.filter(
-    (task) => task.priority === "high"
+    (task: Task) => task.priority === "high"
   ).length;
 
   const handleCreateTask = () => {
