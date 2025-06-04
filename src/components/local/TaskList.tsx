@@ -11,15 +11,13 @@ import {
   closestCenter,
   useSensor,
   useSensors,
-  PointerSensor,
   TouchSensor,
-  KeyboardSensor,
+
   MouseSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableTask } from "./SortableTask";
@@ -132,28 +130,13 @@ export default function TaskList() {
     },
   });
 
-  const keyboardSensor = useSensor(KeyboardSensor);
+  
 
 
   const sensors = useSensors(
     mouseSensor,
-    touchSensor,
-    keyboardSensor
+    touchSensor
   );
-
-//     }),
-//     useSensor(TouchSensor, {
-//       // Customized settings for touch devices
-//       activationConstraint: {
-//         delay: 250, // Increased delay for touch to differentiate between scroll and drag
-//         tolerance: 5,
-//       },
-//     }),
-//     useSensor(KeyboardSensor, {
-//       // Added keyboard support for accessibility
-//       coordinateGetter: sortableKeyboardCoordinates,
-//     })
-//   );
 
   if (isLoading) {
     return (
