@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTasks } from "@/lib/api";
+import { getTasks, updateTaskPosition } from "@/lib/api";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import TaskCard from "./TaskCard";
 import { Task, TaskFilter, PaginatedResponse } from "@/types";
 import {
@@ -11,11 +12,14 @@ import {
   useSensor,
   useSensors,
   PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
 } from "@dnd-kit/core";
-import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { SortableTask } from "./SortableTask";
 import SearchFilter from "./SearchFilter";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function TaskList() {
   const queryClient = useQueryClient();
@@ -33,10 +37,10 @@ export default function TaskList() {
     placeholderData: (previousData) => previousData,
   });
 
-  const tasks = data && data?.data || [];
+  const tasks = (data && data?.data) || [];
   const totalPages = data?.meta?.pages || 1;
 
-  console.log(data)
+  //   console.log(data)
 
   // Debounced search handler
   const debouncedSearch = useCallback((value: string) => {
@@ -56,22 +60,75 @@ export default function TaskList() {
     []
   );
 
-  const handleDragEnd = (event: any) => {
+ 
+
+  // Add a new handler for drag movement
+  const handleDragMove = (event: any) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
+    if (active.id !== over?.id) {
       const oldIndex = tasks.findIndex((task: Task) => task._id === active.id);
-      const newIndex = tasks.findIndex((task: Task) => task._id === over.id);
+      const newIndex = tasks.findIndex((task: Task) => task._id === over?.id);
+
+      // Update UI immediately during drag
       queryClient.setQueryData(
         ["tasks", filters],
         (old: PaginatedResponse<Task> | undefined) => ({
           ...(old || { total: 0, page: 1, limit: 10, totalPages: 1 }),
-          items: arrayMove(tasks, oldIndex, newIndex),
+          data: arrayMove(tasks, oldIndex, newIndex),
         })
       );
     }
   };
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      const oldIndex = tasks.findIndex((task: Task) => task._id === active.id);
+      const newIndex = tasks.findIndex((task: Task) => task._id === over?.id);
+     
+      try {
+        // Persist the change to the backend
+        await updateTaskPosition(active.id, { position: newIndex });
+        // No need to invalidate immediately as we've already updated the UI
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      } catch (error) {
+        console.error("Failed to update task position:", error);
+        // Revert the UI on failure
+        queryClient.setQueryData(
+          ["tasks", filters],
+          (old: PaginatedResponse<Task> | undefined) => ({
+            ...(old || { total: 0, page: 1, limit: 10, totalPages: 1 }),
+            data: arrayMove(tasks, newIndex, oldIndex),
+          })
+        );
+        toast.error("Failed to update task position");
+      }
+    }
+  };
+//   const sensors = useSensors(useSensor(PointerSensor));
+
+
+const sensors = useSensors(
+  useSensor(PointerSensor, {
+    // Increased activation area for better touch response
+    activationConstraint: {
+      distance: 8,
+      tolerance: 8,
+      delay: 100, // Small delay to differentiate between tap and drag
+    },
+  }),
+  useSensor(TouchSensor, {
+    // Customized settings for touch devices
+    activationConstraint: {
+      delay: 250, // Increased delay for touch to differentiate between scroll and drag
+      tolerance: 5,
+    },
+  }),
+  useSensor(KeyboardSensor, {
+    // Added keyboard support for accessibility
+    coordinateGetter: sortableKeyboardCoordinates,
+  })
+);
 
   if (isLoading) {
     return (
@@ -114,10 +171,17 @@ export default function TaskList() {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        // onDragEnd={handleDragEnd}
+        onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+       
       >
         <div className='space-y-4 mb-6'>
-          <SortableContext items={tasks.map((task: Task) => task._id)}>
+          <SortableContext
+            items={tasks.map((task: Task) => task._id)}
+            strategy={verticalListSortingStrategy}
+          >
             {tasks.map((task: Task) => (
               <SortableTask key={task._id} id={task._id}>
                 {({ attributes, listeners, ref, style }) => (

@@ -32,6 +32,10 @@ export const updateTask = (
     id: string,
     data: { title?: string; description?: string; status?: string; priority?: string },
 ) => api.put(`/tasks/${id}`, data);
+export const updateTaskPosition = (
+    id: string,
+    data: { position: number },
+) => api.put(`/tasks/${id}/position`, data);
 export const deleteTask = (id: string) => api.delete(`/tasks/${id}`);
 export const getAllUsers = () => api.get('/admin/users');
 export const getUserTasks = (userId: string) => api.get(`/admin/users/${userId}/tasks`);
