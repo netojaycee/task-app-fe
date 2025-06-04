@@ -14,6 +14,7 @@ import {
   PointerSensor,
   TouchSensor,
   KeyboardSensor,
+  MouseSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -113,27 +114,46 @@ export default function TaskList() {
   };
   //   const sensors = useSensors(useSensor(PointerSensor));
 
+  const mouseSensor = useSensor(MouseSensor, {
+    // Customized settings for mouse devices
+    activationConstraint: {
+      delay: 100, // Small delay to differentiate between click and drag
+      tolerance: 5,
+      distance: 10, // Increased distance for better drag activation
+    },
+  });
+
+  const touchSensor = useSensor(TouchSensor, {
+    // Customized settings for touch devices
+    activationConstraint: {
+      delay: 250, // Small delay to differentiate between click and drag
+      tolerance: 5,
+      distance: 10, // Increased distance for better touch activation
+    },
+  });
+
+  const keyboardSensor = useSensor(KeyboardSensor);
+
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      // Increased activation area for better touch response
-      activationConstraint: {
-        distance: 8,
-        tolerance: 8,
-        delay: 100, // Small delay to differentiate between tap and drag
-      },
-    }),
-    useSensor(TouchSensor, {
-      // Customized settings for touch devices
-      activationConstraint: {
-        delay: 250, // Increased delay for touch to differentiate between scroll and drag
-        tolerance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      // Added keyboard support for accessibility
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    mouseSensor,
+    touchSensor,
+    keyboardSensor
   );
+
+//     }),
+//     useSensor(TouchSensor, {
+//       // Customized settings for touch devices
+//       activationConstraint: {
+//         delay: 250, // Increased delay for touch to differentiate between scroll and drag
+//         tolerance: 5,
+//       },
+//     }),
+//     useSensor(KeyboardSensor, {
+//       // Added keyboard support for accessibility
+//       coordinateGetter: sortableKeyboardCoordinates,
+//     })
+//   );
 
   if (isLoading) {
     return (
