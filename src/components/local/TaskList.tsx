@@ -11,13 +11,14 @@ import {
   closestCenter,
   useSensor,
   useSensors,
+  PointerSensor,
   TouchSensor,
-
-  MouseSensor,
+  KeyboardSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
+  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableTask } from "./SortableTask";
@@ -79,7 +80,7 @@ export default function TaskList() {
         ["tasks", filters],
         (old: PaginatedResponse<Task> | undefined) => ({
           ...(old || { total: 0, page: 1, limit: 10, totalPages: 1 }),
-          data: arrayMove(tasks, oldIndex, newIndex),
+          items: arrayMove(tasks, oldIndex, newIndex),
         })
       );
     }
@@ -90,7 +91,13 @@ export default function TaskList() {
     if (active.id !== over?.id) {
       const oldIndex = tasks.findIndex((task: Task) => task._id === active.id);
       const newIndex = tasks.findIndex((task: Task) => task._id === over?.id);
-
+      queryClient.setQueryData(
+        ["tasks", filters],
+        (old: PaginatedResponse<Task> | undefined) => ({
+          ...(old || { total: 0, page: 1, limit: 10, totalPages: 1 }),
+          items: arrayMove(tasks, oldIndex, newIndex),
+        })
+      );
       try {
         // Persist the change to the backend
         await updateTaskPosition(active.id, { position: newIndex });
@@ -103,7 +110,7 @@ export default function TaskList() {
           ["tasks", filters],
           (old: PaginatedResponse<Task> | undefined) => ({
             ...(old || { total: 0, page: 1, limit: 10, totalPages: 1 }),
-            data: arrayMove(tasks, newIndex, oldIndex),
+            items: arrayMove(tasks, newIndex, oldIndex),
           })
         );
         toast.error("Failed to update task position");
@@ -112,30 +119,28 @@ export default function TaskList() {
   };
   //   const sensors = useSensors(useSensor(PointerSensor));
 
-  const mouseSensor = useSensor(MouseSensor, {
-    // Customized settings for mouse devices
-    activationConstraint: {
-      delay: 100, // Small delay to differentiate between click and drag
-      tolerance: 5,
-      distance: 10, // Increased distance for better drag activation
-    },
-  });
-
-  const touchSensor = useSensor(TouchSensor, {
-    // Customized settings for touch devices
-    activationConstraint: {
-      delay: 250, // Small delay to differentiate between click and drag
-      tolerance: 5,
-      distance: 10, // Increased distance for better touch activation
-    },
-  });
-
   
 
-
   const sensors = useSensors(
-    mouseSensor,
-    touchSensor
+    useSensor(PointerSensor, {
+      // Increased activation area for better touch response
+      activationConstraint: {
+        distance: 8,
+        tolerance: 8,
+        delay: 100, // Small delay to differentiate between tap and drag
+      },
+    }),
+    useSensor(TouchSensor, {
+      // Customized settings for touch devices
+      activationConstraint: {
+        delay: 250, // Increased delay for touch to differentiate between scroll and drag
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      // Added keyboard support for accessibility
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   );
 
   if (isLoading) {

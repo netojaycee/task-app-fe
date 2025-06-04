@@ -86,7 +86,7 @@ const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(
 
             {/* Main content */}
             <CardContent className='flex-1'>
-              <div className='flex justify-between items-start'>
+              <div className='flex justify-between items-start flex-col sm:flex-row sm:mb-4'>
                 <h3 className='font-medium text-lg mb-2 text-gray-800'>
                   {task.title}
                 </h3>
